@@ -3,12 +3,20 @@ from random import uniform
 from math import sqrt
 
 
+def distance(a, b):
+    dimensions = len(a)
+    
+    sum_res = 0
+    for dimension in range(dimensions):
+        difference = (a[dimension] - b[dimension]) ** 2
+        sum_res += difference
+    return sqrt(sum_res)
 
-def point_avg(points):
+def cal_mean(points):
 
     dimensions = len(points[0])
 
-    new_center = []
+    new_cluster_centers = []
 
     for dimension in range(dimensions):
         dim_sum = 0  # dimension sum
@@ -16,21 +24,22 @@ def point_avg(points):
             dim_sum += p[dimension]
 
         # average of each dimension
-        new_center.append(dim_sum / float(len(points)))
+        new_cluster_centers.append(dim_sum / float(len(points)))
 
-    return new_center
-def update_centers(data_set, assignments):
+    return new_cluster_centers
+
+def update_cluster_centers(data_set, assignments):
     
     new_means = defaultdict(list)
-    centers = []
+    cluster_centers = []
     for assignment, point in zip(assignments, data_set):
         new_means[assignment].append(point)
         
     for points in new_means.values():
-        centers.append(point_avg(points))
+        cluster_centers.append(cal_mean(points))
 
-    return centers
-def assign_points(data_points, centers):
+    return cluster_centers
+def reassign(data_points, centers):
     
     assignments = []
     for point in data_points:
@@ -45,23 +54,16 @@ def assign_points(data_points, centers):
     return assignments
 
 
-def distance(a, b):
-    dimensions = len(a)
-    
-    _sum = 0
-    for dimension in range(dimensions):
-        difference_sq = (a[dimension] - b[dimension]) ** 2
-        _sum += difference_sq
-    return sqrt(_sum)
 
 
-def generate_k(data_set, k):
+
+def k_generator(dataset, k):
     
     centers = []
-    dimensions = len(data_set[0])
+    dimensions = len(dataset[0])
     min_max = defaultdict(int)
 
-    for point in data_set:
+    for point in dataset:
         
         for i in range(dimensions):
             val = point[i]
@@ -86,13 +88,13 @@ def generate_k(data_set, k):
 
 
 def k_means(dataset, k):
-    k_points = generate_k(dataset, k)
-    assignments = assign_points(dataset, k_points)
+    k_points = k_generator(dataset, k)
+    assignments = reassign(dataset, k_points)
     old_assignments = None
     centers = None
     while assignments != old_assignments:
-        new_centers = update_centers(dataset, assignments)
+        new_centers = update_cluster_centers(dataset, assignments)
         old_assignments = assignments
-        assignments = assign_points(dataset, new_centers)
+        assignments = reassign(dataset, new_centers)
         centers = new_centers
     return assignments, centers
